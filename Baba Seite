@@ -1,0 +1,327 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Mic, StopCircle, Send } from 'lucide-react';
+
+const BabbaVideoApp = () => {
+  const [activeTab, setActiveTab] = useState('videos');
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      text: "**Hallo,**\nIch bin **baVis** – nicht einfach nur eine KI, sondern deine *digitale Kampfmaschine* gegen Mittelmaß, Langeweile und verlorene Reichweite.\nDu brauchst ein Skript, das zerreißt? Ein Video, das explodiert? Eine Idee, die kracht? Ich liefere. In Sekunden.\n**Kein Bullshit. Keine Ausreden. Nur Resultate.**\nWillkommen in der Ära, in der du dich zurücklehnen kannst – und ich den Rest erledige.\n**Bereit für die nächste Stufe?**\nDann lehn dich zurück. *baVis* übernimmt.",
+      sender: 'bavis'
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const messagesEndRef = useRef(null);
+
+  // Voice Recording Functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+      
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        // Here you would typically send the audioBlob to a transcription service
+        audioChunksRef.current = [];
+      };
+      
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error accessing microphone', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  // Send Message Function
+  const sendMessage = async () => {
+    if (inputMessage.trim() === '') return;
+
+    // Add user message to messages
+    const userMessage = {
+      id: messages.length + 1,
+      text: inputMessage,
+      sender: 'user'
+    };
+    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      // Simulated API response (replace with actual API call)
+      const bavisResponse = {
+        id: messages.length + 2,
+        text: `Du hast "${inputMessage}" gesagt. Ich kann dir leider noch nicht vollständig antworten.`,
+        sender: 'bavis'
+      };
+      
+      // Add baVis response to messages
+      setMessages(prev => [...prev, bavisResponse]);
+
+      // Clear input
+      setInputMessage('');
+    } catch (error) {
+      console.error('Error sending message', error);
+      // Optionally add an error message to chat
+    }
+  };
+
+  // Scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const renderContent = () => {
+    switch(activeTab) {
+      case 'videos':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Empfohlene Videos</h2>
+            <p className="text-lg text-black">Videos-Bereich</p>
+          </div>
+        );
+      case 'container-strategy':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Container-Strategie</h2>
+            <p className="text-lg text-black">Entwickle eine effektive Strategie für deine Content-Erstellung</p>
+          </div>
+        );
+      case 'thumbnail':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Thumbnail Erstellung</h2>
+            <p className="text-lg text-black">Gestalte packende Thumbnails für maximale Klickraten</p>
+          </div>
+        );
+      case 'calendar':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Erfolge</h2>
+            <p className="text-lg text-black">Verfolge und feiere deine Erfolge</p>
+          </div>
+        );
+      case 'headlines':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Video Überschriften</h2>
+            <p className="text-lg text-black">Erstelle packende Überschriften für dein Video</p>
+          </div>
+        );
+      case 'hook':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Video Hook Generierung</h2>
+            <p className="text-lg text-black">Erstelle einen fesselnden Einstieg für dein Video</p>
+          </div>
+        );
+      case 'script':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Video Script Hauptteil</h2>
+            <p className="text-lg text-black">Strukturiere den Inhalt deines Videos</p>
+          </div>
+        );
+      case 'end':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Video Endsequenz</h2>
+            <p className="text-lg text-black">Erstelle einen starken Abschluss mit Call-to-Action</p>
+          </div>
+        );
+      case 'thumbnail-creation':
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Thumbnail Erstellung</h2>
+            <p className="text-lg text-black">Professionelle Thumbnail-Erstellung für deine Videos</p>
+          </div>
+        );
+      default:
+        return (
+          <div className="w-full">
+            <h2 className="text-xl font-bold mb-4 text-black">Empfohlene Videos</h2>
+            <p className="text-lg text-black">Videos-Bereich</p>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-white">
+      {/* Chat-Bereich */}
+      <div className="h-1/2 bg-white shadow-md flex flex-col">
+        <div className="bg-red-600 p-3 text-white text-center font-bold">
+          <h1>baVis Video Assistent</h1>
+        </div>
+        <div className="flex-grow p-4 overflow-y-auto">
+          <div className="space-y-2">
+            {messages.map((message) => (
+              <div 
+                key={message.id} 
+                className={`p-2 rounded-lg max-w-[80%] whitespace-pre-wrap ${
+                  message.sender === 'bavis' 
+                    ? 'bg-red-100 text-black self-start' 
+                    : 'bg-red-600 text-white self-end ml-auto'
+                }`}
+              >
+                {message.text.split(/(\*\*.*?\*\*|\*.*?\*)/g).map((part, index) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={index}>{part.slice(2, -2)}</strong>;
+                  }
+                  if (part.startsWith('*') && part.endsWith('*')) {
+                    return <em key={index}>{part.slice(1, -1)}</em>;
+                  }
+                  return part;
+                })}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+        
+        {/* Chat-Eingabe */}
+        <div className="flex items-center p-4 bg-gray-100">
+          <button 
+            onClick={isRecording ? stopRecording : startRecording}
+            className="mr-2 text-red-600"
+          >
+            {isRecording ? <StopCircle /> : <Mic />}
+          </button>
+          <input 
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Nachricht eingeben..."
+            className="flex-grow p-2 rounded-lg border mr-2"
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          />
+          <button 
+            onClick={sendMessage}
+            className="text-red-600"
+          >
+            <Send />
+          </button>
+        </div>
+      </div>
+      
+      {/* Ausbildung Überschrift */}
+      <div className="bg-red-600 p-3 text-white text-center font-bold">
+        <h2 className="text-2xl">Ausbildung</h2>
+      </div>
+
+      {/* Haupt-Navigation */}
+      <div className="flex justify-around bg-red-600 p-2 border-b">
+        <button 
+          onClick={() => setActiveTab('videos')}
+          className={`px-4 py-1 text-white font-medium text-sm ${activeTab === 'videos' ? 'border-b-2 border-white' : ''}`}
+        >
+          Videos
+        </button>
+        <button 
+          onClick={() => setActiveTab('container-strategy')}
+          className={`px-4 py-1 text-white font-medium text-sm ${activeTab === 'container-strategy' ? 'border-b-2 border-white' : ''}`}
+        >
+          Container-Strategie
+        </button>
+        <button 
+          onClick={() => setActiveTab('thumbnail')}
+          className={`px-4 py-1 text-white font-medium text-sm ${activeTab === 'thumbnail' ? 'border-b-2 border-white' : ''}`}
+        >
+          Thumbnail
+        </button>
+        <button 
+          onClick={() => setActiveTab('calendar')}
+          className={`px-4 py-1 text-white font-medium text-sm ${activeTab === 'calendar' ? 'border-b-2 border-white' : ''}`}
+        >
+          Erfolge
+        </button>
+      </div>
+
+      {/* Do-it-yourself Überschrift */}
+      <div className="bg-red-600 p-3 text-white text-center font-bold">
+        <h2 className="text-2xl">
+          Done for you
+        </h2>
+      </div>
+
+      {/* Sekundäre Navigation */}
+      <div className="flex justify-around bg-red-600 p-2 border-b">
+        <button 
+          onClick={() => setActiveTab('headlines')}
+          className={`px-4 py-1 text-white font-medium text-sm rounded-full ${
+            activeTab === 'headlines' ? 'bg-white text-red-600' : 'hover:bg-red-500'
+          }`}
+        >
+          Überschriften
+        </button>
+        <button 
+          onClick={() => setActiveTab('hook')}
+          className={`px-4 py-1 text-white font-medium text-sm rounded-full ${
+            activeTab === 'hook' ? 'bg-white text-red-600' : 'hover:bg-red-500'
+          }`}
+        >
+          Hook
+        </button>
+        <button 
+          onClick={() => setActiveTab('script')}
+          className={`px-4 py-1 text-white font-medium text-sm rounded-full ${
+            activeTab === 'script' ? 'bg-white text-red-600' : 'hover:bg-red-500'
+          }`}
+        >
+          Script
+        </button>
+        <button 
+          onClick={() => setActiveTab('end')}
+          className={`px-4 py-1 text-white font-medium text-sm rounded-full ${
+            activeTab === 'end' ? 'bg-white text-red-600' : 'hover:bg-red-500'
+          }`}
+        >
+          Endsequenz
+        </button>
+      </div>
+
+      {/* Thumbnail & Video Überschrift */}
+      <div className="bg-red-600 p-3 text-white text-center font-bold">
+        <h2 className="text-2xl">
+          Do-it-yourself mit baVis
+        </h2>
+      </div>
+
+      {/* Dritte Navigation */}
+      <div className="flex justify-around bg-red-600 p-2 border-b">
+        <button 
+          onClick={() => setActiveTab('thumbnail-creation')}
+          className={`px-4 py-1 text-white font-medium text-sm rounded-full ${
+            activeTab === 'thumbnail-creation' ? 'bg-white text-red-600' : 'hover:bg-red-500'
+          }`}
+        >
+          Thumbnail
+        </button>
+        <button 
+          disabled
+          className="px-4 py-1 text-gray-400 font-medium text-sm rounded-full bg-red-700 cursor-not-allowed"
+        >
+          Video (Coming Soon)
+        </button>
+      </div>
+      
+      {/* Inhalts-Bereich */}
+      <div className="flex-grow overflow-y-auto p-4 flex items-center justify-center">
+        {renderContent()}
+      </div>
+    </div>
+  );
+};
+
+export default BabbaVideoApp;
